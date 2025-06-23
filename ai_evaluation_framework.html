@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Evaluation Framework</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .category {
+            margin-bottom: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .category-header:hover::before {
+            left: 100%;
+        }
+
+        .category-header h2 {
+            font-size: 1.5em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .category-icon {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .category.active .category-icon {
+            transform: rotate(180deg);
+        }
+
+        .category-content {
+            background: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.3s ease;
+        }
+
+        .category.active .category-content {
+            max-height: 1000px;
+            padding: 30px;
+        }
+
+        .question {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .category.active .question {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .question:nth-child(1) { transition-delay: 0.1s; }
+        .question:nth-child(2) { transition-delay: 0.2s; }
+        .question:nth-child(3) { transition-delay: 0.3s; }
+        .question:nth-child(4) { transition-delay: 0.4s; }
+        .question:nth-child(5) { transition-delay: 0.5s; }
+        .question:nth-child(6) { transition-delay: 0.6s; }
+
+        .question:hover {
+            background: #e3f2fd;
+            transform: translateX(10px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-text {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .sub-questions {
+            margin-left: 20px;
+            color: #555;
+        }
+
+        .sub-question {
+            margin-bottom: 5px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .sub-question::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .floating-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .category-header h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>AI Evaluation Framework</h1>
+            <p>A comprehensive guide to evaluating AI technologies across key dimensions</p>
+        </div>
+        
+        <div class="content">
+            <div class="category" data-category="reliability">
+                <div class="category-header">
+                    <h2>🔍 Reliability</h2>
+                    <div class="category-icon">▼</div>
+                </div>
+                <div class="category-content">
+                    <div class="question">
+                        <div class="question-text">How reliable is the information available about the AI technology?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">If it's not produced by the party responsible for the AI:</div>
+                        <div class="sub-questions">
+                            <div class="sub-question">What are the author's credentials?</div>
+                            <div class="sub-question">What potential bias might exist?</div>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">If it is produced by the party responsible for the AI:</div>
+                        <div class="sub-questions">
+                            <div class="sub-question">How much information are they making available?</div>
+                            <div class="sub-question">Is information only partially available due to trade secrets?</div>
+                            <div class="sub-question">How biased is the information that they produce?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category" data-category="objectivity">
+                <div class="category-header">
+                    <h2>🎯 Objectivity</h2>
+                    <div class="category-icon">▼</div>
+                </div>
+                <div class="category-content">
+                    <div class="question">
+                        <div class="question-text">What is the goal or objective of the use of AI?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">What is the goal of sharing information about it?</div>
+                        <div class="sub-questions">
+                            <div class="sub-question">To inform?</div>
+                            <div class="sub-question">To convince?</div>
+                            <div class="sub-question">To find financial support?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category" data-category="bias">
+                <div class="category-header">
+                    <h2>⚖️ Bias</h2>
+                    <div class="category-icon">▼</div>
+                </div>
+                <div class="category-content">
+                    <div class="question">
+                        <div class="question-text">What could create bias in the AI technology?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Are there ethical issues associated with this?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Are bias or ethical issues acknowledged?</div>
+                        <div class="sub-questions">
+                            <div class="sub-question">By the source of information?</div>
+                            <div class="sub-question">By the party responsible for the AI?</div>
+                            <div class="sub-question">By its users?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category" data-category="ownership">
+                <div class="category-header">
+                    <h2>🏢 Ownership</h2>
+                    <div class="category-icon">▼</div>
+                </div>
+                <div class="category-content">
+                    <div class="question">
+                        <div class="question-text">Who is the owner or developer of the AI technology?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Who is responsible for it?</div>
+                        <div class="sub-questions">
+                            <div class="sub-question">Is it a private company?</div>
+                            <div class="sub-question">The government?</div>
+                            <div class="sub-question">A think tank or research group?</div>
+                        </div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Who has access to it?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Who can use it?</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category" data-category="type">
+                <div class="category-header">
+                    <h2>🤖 Type</h2>
+                    <div class="category-icon">▼</div>
+                </div>
+                <div class="category-content">
+                    <div class="question">
+                        <div class="question-text">Which subtype of AI is it?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Is the technology theoretical or applied?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">What kind of information system does it rely on?</div>
+                    </div>
+                    <div class="question">
+                        <div class="question-text">Does it rely on human intervention?</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-button" id="expandAll" title="Expand/Collapse All">
+        📋
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categories = document.querySelectorAll('.category');
+            const progressBar = document.getElementById('progressBar');
+            const expandAllBtn = document.getElementById('expandAll');
+            let allExpanded = false;
+
+            // Category toggle functionality
+            categories.forEach(category => {
+                const header = category.querySelector('.category-header');
+                header.addEventListener('click', () => {
+                    category.classList.toggle('active');
+                    updateProgress();
+                });
+            });
+
+            // Progress bar update
+            function updateProgress() {
+                const activeCategories = document.querySelectorAll('.category.active').length;
+                const totalCategories = categories.length;
+                const progress = (activeCategories / totalCategories) * 100;
+                progressBar.style.width = progress + '%';
+            }
+
+            // Expand/Collapse all functionality
+            expandAllBtn.addEventListener('click', () => {
+                allExpanded = !allExpanded;
+                categories.forEach(category => {
+                    if (allExpanded) {
+                        category.classList.add('active');
+                    } else {
+                        category.classList.remove('active');
+                    }
+                });
+                updateProgress();
+                expandAllBtn.textContent = allExpanded ? '📂' : '📋';
+            });
+
+            // Smooth scroll to top when clicking floating button
+            expandAllBtn.addEventListener('dblclick', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    categories.forEach(category => {
+                        category.classList.remove('active');
+                    });
+                    updateProgress();
+                    allExpanded = false;
+                    expandAllBtn.textContent = '📋';
+                }
+            });
+
+            // Add hover effects for better interactivity
+            categories.forEach(category => {
+                const header = category.querySelector('.category-header');
+                header.addEventListener('mouseenter', () => {
+                    if (!category.classList.contains('active')) {
+                        header.style.transform = 'scale(1.02)';
+                    }
+                });
+                header.addEventListener('mouseleave', () => {
+                    header.style.transform = 'scale(1)';
+                });
+            });
+
+            // Initialize progress bar
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
+
